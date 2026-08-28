@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Spring Boot Starter Parent — manages dependency versions, plugin defaults -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.2</version>
+        <relativePath/> <!-- lookup from repository -->
+    </parent>
+
+    <groupId>com.scheduler</groupId>
+    <artifactId>distributed-task-scheduler</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Distributed Reliable Task Scheduler</name>
+    <description>
+        A production-style distributed task scheduling system demonstrating
+        reliability, fault tolerance, and horizontal scalability.
+    </description>
+
+    <!-- ============================================================ -->
+    <!-- Modules                                                      -->
+    <!-- ============================================================ -->
+    <modules>
+        <module>shared</module>
+        <module>services/api</module>
+        <module>services/scheduler</module>
+        <module>services/worker</module>
+    </modules>
+
+    <!-- ============================================================ -->
+    <!-- Properties                                                   -->
+    <!-- ============================================================ -->
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!-- ============================================================ -->
+    <!-- Dependency Management (versions centralised here)            -->
+    <!-- ============================================================ -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Internal shared module -->
+            <dependency>
+                <groupId>com.scheduler</groupId>
+                <artifactId>scheduler-shared</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- ============================================================ -->
+    <!-- Common dependencies inherited by ALL modules                 -->
+    <!-- ============================================================ -->
+    <dependencies>
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- ============================================================ -->
+    <!-- Build / Plugin Management                                    -->
+    <!-- ============================================================ -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!--
+                    Spring Boot Maven Plugin is declared in pluginManagement
+                    so that service modules can activate it explicitly.
+                    The shared module (a library JAR) does NOT activate it.
+                -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

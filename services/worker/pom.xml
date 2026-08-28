@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.scheduler</groupId>
+        <artifactId>distributed-task-scheduler</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>scheduler-worker</artifactId>
+    <name>Scheduler — Worker Service</name>
+    <description>
+        Consumes task messages from RabbitMQ, executes the appropriate
+        TaskHandler, and records outcomes in PostgreSQL. Horizontally
+        scalable — add more worker instances for higher throughput.
+    </description>
+
+    <dependencies>
+        <!-- Shared domain model, repositories, Flyway migrations -->
+        <dependency>
+            <groupId>com.scheduler</groupId>
+            <artifactId>scheduler-shared</artifactId>
+        </dependency>
+
+        <!-- Spring Web (for Actuator health/readiness endpoints) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Actuator (health, readiness, liveness endpoints) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- RabbitMQ (AMQP — consume task messages from queue) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

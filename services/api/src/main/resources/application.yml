@@ -1,0 +1,48 @@
+# =============================================================================
+# API Service Configuration
+# =============================================================================
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: scheduler-api
+
+  # --- PostgreSQL (source of truth) ---
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskscheduler}
+    username: ${DB_USER:scheduler}
+    password: ${DB_PASSWORD:scheduler_password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000   # 20s
+
+  # --- JPA / Hibernate ---
+  jpa:
+    hibernate:
+      ddl-auto: validate    # Flyway manages the schema; Hibernate only validates
+    show-sql: false
+    open-in-view: false      # Disable OSIV — we control transactions explicitly
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # --- Flyway ---
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+# --- Actuator ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true    # Enables /actuator/health/liveness and /readiness

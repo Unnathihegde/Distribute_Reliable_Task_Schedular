@@ -1,0 +1,80 @@
+# =============================================================================
+# Distributed Reliable Task Scheduler — Local Development Environment
+# =============================================================================
+# Usage:
+#   docker compose up -d postgres rabbitmq redis
+#
+# Verify health:
+#   docker compose ps
+#
+# Connect to PostgreSQL:
+#   docker compose exec postgres psql -U scheduler -d taskscheduler
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16 — Source of truth for task metadata and lifecycle state
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16
+    container_name: scheduler-postgres
+    environment:
+      POSTGRES_DB: taskscheduler
+      POSTGRES_USER: scheduler
+      POSTGRES_PASSWORD: scheduler_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduler -d taskscheduler"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # RabbitMQ 3.13 — Asynchronous task dispatch (scheduler → workers)
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: scheduler-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: scheduler
+      RABBITMQ_DEFAULT_PASS: scheduler_password
+    ports:
+      - "5672:5672"     # AMQP protocol
+      - "15672:15672"   # Management UI (http://localhost:15672)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Redis 7 — Rate limiting, ephemeral coordination (NOT source of truth)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7
+    container_name: scheduler-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
