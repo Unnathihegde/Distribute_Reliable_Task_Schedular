@@ -85,6 +85,27 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                 </plugin>
+
+                <!--
+                    Surefire JVM args for JDK 25 compatibility.
+                    JDK 25 restricts reflective access and dynamic agent loading by default.
+                    These flags are needed for:
+                    - Mockito/ByteBuddy (--add-opens + -XX:+EnableDynamicAgentLoading)
+                    - Spring's internal reflective access (--add-opens java.base)
+                -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <argLine>
+                            -XX:+EnableDynamicAgentLoading
+                            --add-opens java.base/java.lang=ALL-UNNAMED
+                            --add-opens java.base/java.util=ALL-UNNAMED
+                            --add-opens java.base/java.lang.reflect=ALL-UNNAMED
+                            --add-opens java.base/java.lang.invoke=ALL-UNNAMED
+                        </argLine>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
