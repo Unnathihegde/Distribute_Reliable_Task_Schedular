@@ -37,6 +37,92 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+
+        <!--
+            Bean Validation — needed explicitly on the API classpath so that
+            @Valid on controller method parameters activates the HandlerMethodArgumentResolver.
+            The shared module declares it too, but Maven does not transitively
+            expose it in a way that wires Spring MVC validation in a separate module.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Spring Data Redis for rate limiting & caching -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!--
+            OpenAPI 3 / Swagger UI — auto-generates API docs from annotations.
+            2.x series is required for Spring Boot 3.x (uses Jakarta EE, not javax).
+            Docs at: http://localhost:8080/swagger-ui.html
+        -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
+        <!-- Cron expression validation without pulling in the full Quartz scheduler -->
+        <dependency>
+            <groupId>com.cronutils</groupId>
+            <artifactId>cron-utils</artifactId>
+            <version>9.2.1</version>
+        </dependency>
+
+        <!-- Micrometer Prometheus registry exporter for /actuator/prometheus -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- Logstash Logback Encoder for structured JSON logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+        </dependency>
+
+        <!-- Micrometer Tracing OpenTelemetry Bridge -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+
+        <!-- OpenTelemetry OTLP Exporter for Jaeger -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+
+        <!-- ===================== TEST DEPENDENCIES ===================== -->
+
+        <!--
+            Testcontainers BOM integration — wires @ServiceConnection to
+            automatically configure Spring datasource from the running container.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- PostgreSQL container image — starts a real PostgreSQL for integration tests -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit 5 extension for Testcontainers — provides @Testcontainers and @Container -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -46,6 +132,25 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <!--
+                Surefire — test runner configuration for JDK 25 compatibility.
+
+                Byte Buddy (used by Mockito for mocking) officially supports up to Java 23.
+                On JDK 25 we must enable experimental mode via the system property.
+                This is a known workaround and does not affect test correctness.
+
+                The argLine also opens necessary JDK internals that Mockito's inline
+                mock maker requires for class instrumentation.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Duser.timezone=UTC</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
+

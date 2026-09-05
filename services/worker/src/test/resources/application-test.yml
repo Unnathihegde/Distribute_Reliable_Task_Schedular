@@ -1,0 +1,47 @@
+# Test profile configuration for Worker Service integration tests
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskscheduler}?options=-c%20timezone=UTC
+    username: ${DB_USER:scheduler}
+    password: ${DB_PASSWORD:scheduler_password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:scheduler}
+    password: ${RABBITMQ_PASSWORD:scheduler_password}
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+worker:
+  worker-id: test-worker-1
+  concurrency: 2
+  prefetch: 1
+  task-timeout-seconds: 2
+  lease-duration-seconds: 60
+  shutdown-timeout-seconds: 5
+
+logging:
+  level:
+    com.scheduler: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

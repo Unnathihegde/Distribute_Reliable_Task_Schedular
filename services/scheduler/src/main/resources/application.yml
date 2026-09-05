@@ -11,7 +11,7 @@ spring:
 
   # --- PostgreSQL (source of truth) ---
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskscheduler}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskscheduler}?options=-c%20timezone=UTC
     username: ${DB_USER:scheduler}
     password: ${DB_PASSWORD:scheduler_password}
     hikari:
@@ -42,14 +42,30 @@ spring:
     username: ${RABBITMQ_USER:scheduler}
     password: ${RABBITMQ_PASSWORD:scheduler_password}
 
+# --- Scheduler Config ---
+scheduler:
+  poll-interval: 5000
+  batch-size: 50
+  retry-sweep-interval: 10000
+  lease-recovery-interval: 30000
+  stale-queued-interval: 60000
+  stale-queued-threshold-minutes: 5
+
 # --- Actuator ---
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: when_authorized
       probes:
         enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://jaeger:4318/v1/traces}

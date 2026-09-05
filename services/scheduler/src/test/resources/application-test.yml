@@ -1,0 +1,50 @@
+# =============================================================================
+# Test profile configuration for Scheduler Service integration tests
+# =============================================================================
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskscheduler}?options=-c%20timezone=UTC
+    username: ${DB_USER:scheduler}
+    password: ${DB_PASSWORD:scheduler_password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:scheduler}
+    password: ${RABBITMQ_PASSWORD:scheduler_password}
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+scheduler:
+  poll-interval: 3600000
+  batch-size: 50
+  retry-sweep-interval: 3600000
+  lease-recovery-interval: 3600000
+  stale-queued-interval: 3600000
+  stale-queued-threshold-minutes: 5
+
+logging:
+  level:
+    com.scheduler: DEBUG
+    org.springframework.amqp: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

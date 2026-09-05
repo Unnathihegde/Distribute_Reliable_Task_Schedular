@@ -1,14 +1,11 @@
 # =============================================================================
-# Distributed Reliable Task Scheduler — Local Development Environment
+# Distributed Reliable Task Scheduler — Local Development & Monitoring Stack
 # =============================================================================
 # Usage:
-#   docker compose up -d postgres rabbitmq redis
+#   docker compose up -d --build
 #
 # Verify health:
 #   docker compose ps
-#
-# Connect to PostgreSQL:
-#   docker compose exec postgres psql -U scheduler -d taskscheduler
 # =============================================================================
 
 services:
@@ -71,6 +68,145 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # API Service — Task Submission, Query, Cancellation & Manual Retry
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    container_name: scheduler-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/taskscheduler
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-scheduler}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-scheduler_password}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-scheduler}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-scheduler_password}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      API_KEY: ${API_KEY:-dev-secret-api-key}
+      RATE_LIMIT_PERMITS: ${RATE_LIMIT_PERMITS:-100000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Scheduler Service — Task Polling & Queue Dispatcher
+  # ---------------------------------------------------------------------------
+  scheduler:
+    build:
+      context: .
+      dockerfile: services/scheduler/Dockerfile
+    container_name: scheduler-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/taskscheduler
+      SPRING_DATASOURCE_USERNAME: scheduler
+      SPRING_DATASOURCE_PASSWORD: scheduler_password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: scheduler
+      SPRING_RABBITMQ_PASSWORD: scheduler_password
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Worker Service — Task Execution Engine
+  # ---------------------------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: scheduler-worker
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/taskscheduler
+      SPRING_DATASOURCE_USERNAME: scheduler
+      SPRING_DATASOURCE_PASSWORD: scheduler_password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: scheduler
+      SPRING_RABBITMQ_PASSWORD: scheduler_password
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Prometheus — Metrics Collector & Time-Series DB
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: scheduler-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - api
+      - scheduler
+      - worker
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Grafana — Metrics Visualizer & Dashboards
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: scheduler-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Jaeger — All-in-One Distributed Tracing Backend & UI
+  # ---------------------------------------------------------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:1.56
+    container_name: scheduler-jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI (http://localhost:16686)
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
     restart: unless-stopped
 
 volumes:
