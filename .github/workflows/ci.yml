@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build, Test & Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Make Maven Wrapper executable
+        run: chmod +x mvnw
+
+      - name: Fast Feedback - Compile Codebase
+        run: ./mvnw clean compile
+
+      - name: Run Full Test Suite (Unit & Testcontainers Integration Tests)
+        run: ./mvnw test
+
+      - name: Build API Docker Image
+        run: docker build -t task-scheduler-api:latest -f services/api/Dockerfile .
+
+      - name: Build Scheduler Docker Image
+        run: docker build -t task-scheduler-scheduler:latest -f services/scheduler/Dockerfile .
+
+      - name: Build Worker Docker Image
+        run: docker build -t task-scheduler-worker:latest -f services/worker/Dockerfile .
