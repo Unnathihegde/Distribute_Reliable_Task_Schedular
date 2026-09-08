@@ -47,3 +47,9 @@ management:
     metrics:
       export:
         enabled: true
+  tracing:
+    sampling:
+      probability: 0.0   # Disable tracing in tests — no Jaeger available in CI
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces  # Overrides main config; never actually called (probability=0.0)
