@@ -100,6 +100,7 @@ class RecoverySweepsIntegrationTest {
         // Verify message was re-published to RabbitMQ
         TaskDispatchMessage message = (TaskDispatchMessage) rabbitTemplate.receiveAndConvert(RabbitMqConfig.QUEUE_MEDIUM, 3000);
         assertThat(message).isNotNull();
+        java.util.Objects.requireNonNull(message);
         assertThat(message.getTaskId()).isEqualTo(task.getId());
     }
 
@@ -191,11 +192,12 @@ class RecoverySweepsIntegrationTest {
         // --- Step 2: Worker 1 consumes message and acquires lease (QUEUED -> RUNNING) ---
         TaskDispatchMessage msg1 = (TaskDispatchMessage) rabbitTemplate.receiveAndConvert(RabbitMqConfig.QUEUE_HIGH, 3000);
         assertThat(msg1).isNotNull();
+        java.util.Objects.requireNonNull(msg1);
         assertThat(msg1.getTaskId()).isEqualTo(task.getId());
 
         UUID worker1LeaseId = UUID.randomUUID();
         Instant worker1StartedAt = Instant.now();
-        int claimed1 = transactionTemplate.execute(status -> taskRepository.claimLeaseQueuedToRunning(
+        Integer claimed1 = transactionTemplate.execute(status -> taskRepository.claimLeaseQueuedToRunning(
                 task.getId(),
                 "worker-instance-1",
                 worker1LeaseId,
@@ -224,11 +226,12 @@ class RecoverySweepsIntegrationTest {
         // --- Step 5: Worker 2 consumes re-published message from RabbitMQ and completes task ---
         TaskDispatchMessage msg2 = (TaskDispatchMessage) rabbitTemplate.receiveAndConvert(RabbitMqConfig.QUEUE_HIGH, 3000);
         assertThat(msg2).isNotNull();
+        java.util.Objects.requireNonNull(msg2);
         assertThat(msg2.getTaskId()).isEqualTo(task.getId());
 
         UUID worker2LeaseId = UUID.randomUUID();
         Instant worker2StartedAt = Instant.now();
-        int claimed2 = transactionTemplate.execute(status -> taskRepository.claimLeaseQueuedToRunning(
+        Integer claimed2 = transactionTemplate.execute(status -> taskRepository.claimLeaseQueuedToRunning(
                 task.getId(),
                 "worker-instance-2",
                 worker2LeaseId,
@@ -238,7 +241,7 @@ class RecoverySweepsIntegrationTest {
         assertThat(claimed2).isEqualTo(1);
 
         Instant completedAt = Instant.now();
-        int successResult = transactionTemplate.execute(status -> taskRepository.markSuccess(task.getId(), worker2LeaseId, completedAt));
+        Integer successResult = transactionTemplate.execute(status -> taskRepository.markSuccess(task.getId(), worker2LeaseId, completedAt));
         assertThat(successResult).isEqualTo(1);
 
         taskAttemptRepository.save(new TaskAttempt(

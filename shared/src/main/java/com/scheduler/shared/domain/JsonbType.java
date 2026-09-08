@@ -1,7 +1,5 @@
 package com.scheduler.shared.domain;
 
-import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 

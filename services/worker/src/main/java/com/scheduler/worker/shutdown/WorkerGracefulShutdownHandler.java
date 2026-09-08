@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,7 +56,7 @@ public class WorkerGracefulShutdownHandler implements SmartLifecycle {
     }
 
     @Override
-    public void stop(Runnable callback) {
+    public void stop(@NonNull Runnable callback) {
         if (!running.compareAndSet(true, false)) {
             callback.run();
             return;

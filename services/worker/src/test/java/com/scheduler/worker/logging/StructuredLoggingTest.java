@@ -2,13 +2,11 @@ package com.scheduler.worker.logging;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scheduler.shared.domain.Priority;
 import com.scheduler.shared.domain.Task;
 import com.scheduler.shared.domain.TaskStatus;
-import com.scheduler.shared.repository.TaskAttemptRepository;
 import com.scheduler.shared.repository.TaskRepository;
 import com.scheduler.worker.execution.TaskExecutionService;
 import net.logstash.logback.encoder.LogstashEncoder;
@@ -26,19 +24,24 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.ByteArrayOutputStream;
 import java.time.Instant;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
 class StructuredLoggingTest {
 
-    @Autowired
-    private TaskRepository taskRepository;
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+
+    @Container
+    @ServiceConnection
+    static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.12-management-alpine");
 
     @Autowired
-    private TaskAttemptRepository taskAttemptRepository;
+    private TaskRepository taskRepository;
 
     @Autowired
     private TaskExecutionService taskExecutionService;

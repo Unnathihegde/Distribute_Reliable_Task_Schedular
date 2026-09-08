@@ -15,12 +15,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Redis-backed sliding-window rate limiter for task creation endpoints.
@@ -52,15 +52,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         // Only rate limit task submission mutations (POST /api/v1/tasks)
         return !(request.getMethod().equalsIgnoreCase("POST") && request.getRequestURI().endsWith("/api/v1/tasks"));
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String apiKey = request.getHeader(ApiKeyAuthenticationFilter.API_KEY_HEADER);
         String bucketKey = "rate_limit:" + (apiKey != null ? apiKey : "anonymous");

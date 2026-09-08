@@ -2,7 +2,6 @@ package com.scheduler.shared.statemachine;
 
 import com.scheduler.shared.domain.Task;
 import com.scheduler.shared.domain.TaskStatus;
-import com.scheduler.shared.exception.TaskNotFoundException;
 import com.scheduler.shared.repository.TaskRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

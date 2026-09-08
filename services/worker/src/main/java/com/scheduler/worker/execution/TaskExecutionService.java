@@ -13,7 +13,6 @@ import com.scheduler.worker.retry.BackoffCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +40,6 @@ public class TaskExecutionService {
     private final com.scheduler.worker.shutdown.WorkerGracefulShutdownHandler shutdownHandler;
     private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
     private final com.scheduler.shared.metrics.TaskMetrics taskMetrics;
-    private final io.opentelemetry.api.OpenTelemetry openTelemetry;
     private final io.opentelemetry.api.trace.Tracer tracer;
     private final java.util.concurrent.atomic.AtomicInteger inFlightCount = new java.util.concurrent.atomic.AtomicInteger(0);
 
@@ -65,7 +63,6 @@ public class TaskExecutionService {
         this.shutdownHandler = shutdownHandler;
         this.transactionTemplate = new org.springframework.transaction.support.TransactionTemplate(transactionManager);
         this.taskMetrics = taskMetrics;
-        this.openTelemetry = openTelemetry;
         this.tracer = openTelemetry.getTracer("com.scheduler.worker");
         this.taskMetrics.registerActiveWorkersGauge(inFlightCount, java.util.concurrent.atomic.AtomicInteger::get);
     }

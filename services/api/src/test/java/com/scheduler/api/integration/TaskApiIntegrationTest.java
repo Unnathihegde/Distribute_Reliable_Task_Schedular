@@ -44,11 +44,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   <li>Cursor pagination: two pages retrieved correctly</li>
  * </ul>
  */
+@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("Task API — Integration Tests")
 class TaskApiIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Autowired
     private MockMvc mvc;

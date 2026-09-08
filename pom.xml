@@ -85,7 +85,33 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                 </plugin>
+
+                <!--
+                    Surefire global configuration — applies to all modules.
+
+                    Docker Desktop 29.x requires Docker API version >= 1.44.
+                    docker-java (bundled with Testcontainers 1.19.8) defaults to
+                    API version 1.19, which Docker Desktop 29.x rejects with HTTP 400.
+                    Setting DOCKER_API_VERSION=1.46 via environmentVariables (not
+                    systemPropertyVariables or argLine) is the correct mechanism
+                    because docker-java reads this value from the process environment,
+                    not from Java system properties.
+
+                    This is CI-safe: Linux Docker daemons also support API 1.46.
+                    On GitHub Actions (ubuntu-latest), Docker is always current and
+                    this setting is harmless.
+                -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <environmentVariables>
+                            <DOCKER_API_VERSION>1.46</DOCKER_API_VERSION>
+                        </environmentVariables>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
 </project>

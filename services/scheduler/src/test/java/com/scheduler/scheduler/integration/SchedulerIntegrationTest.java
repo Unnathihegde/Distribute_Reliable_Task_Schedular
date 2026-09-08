@@ -78,6 +78,7 @@ class SchedulerIntegrationTest {
 
         TaskDispatchMessage message = (TaskDispatchMessage) rabbitTemplate.receiveAndConvert(RabbitMqConfig.QUEUE_MEDIUM, 3000);
         assertThat(message).isNotNull();
+        java.util.Objects.requireNonNull(message);
         assertThat(message.getTaskId()).isEqualTo(task.getId());
         assertThat(message.getTaskType()).isEqualTo("EMAIL");
         assertThat(message.getPriority()).isEqualTo(Priority.MEDIUM);
