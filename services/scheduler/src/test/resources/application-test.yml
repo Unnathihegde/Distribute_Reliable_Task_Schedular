@@ -53,4 +53,6 @@ management:
       probability: 0.0   # Disable tracing in tests — no Jaeger available in CI
   otlp:
     tracing:
-      endpoint: http://localhost:4318/v1/traces  # Overrides main config; never actually called (probability=0.0)
+      endpoint: http://localhost:4318/v1/traces  # Overrides main config; never actually called
+      export:
+        enabled: false   # Prevent OTLP exporter from connecting to Jaeger at startup (CI has no Jaeger)
