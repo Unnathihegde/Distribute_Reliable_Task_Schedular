@@ -5,6 +5,7 @@ import com.scheduler.shared.domain.Task;
 import com.scheduler.shared.domain.TaskStatus;
 import com.scheduler.shared.repository.TaskAttemptRepository;
 import com.scheduler.shared.repository.TaskRepository;
+import com.scheduler.worker.config.WorkerRabbitMqTestConfig;
 import com.scheduler.worker.execution.TaskExecutionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.RabbitMQContainer;
@@ -25,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(WorkerRabbitMqTestConfig.class)
 @DisplayName("Worker Service — Recurring Task Integration Tests")
 class RecurringTaskIntegrationTest {
 
