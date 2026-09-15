@@ -444,7 +444,7 @@ This section is kept up to date manually as milestones land. It reflects what is
 | 8: Recurring tasks, Email/HTTP handlers, retry and delete endpoints | Done, verified |
 | 9: Observability (metrics, logs, dashboards, tracing) | Done, verified |
 | 10: Security and hardening | Done, verified |
-| 11: CI/CD pipeline | Not started; Dockerfiles for all three services already exist, built during Phase 9 |
+| 11: CI/CD pipeline | Done, verified; multi-stage GitHub Actions CI green across all 4 modules (clean install, Testcontainers integration suite, Docker image packaging for all 3 services) |
 | 12: Load testing | Done; 100, 1,000, and 10,000-task tiers measured; the 100,000-task tier and multi-replica scale-out have not yet been run |
 | 13: Kubernetes | Not started |
 | 14: Final documentation and polish | In progress |
